@@ -13,8 +13,8 @@ FirebaseConfig config;
 FirebaseAuth auth;
 
 // WiFi credentials
-#define WIFI_SSID "fh_1eaaf0"
-#define WIFI_PASSWORD "Wlan1500"
+#define WIFI_SSID "MIKRO"
+#define WIFI_PASSWORD "IDEAlist"
 
 
 // Inisialisasi LCD
@@ -116,11 +116,11 @@ void checkNumber() {
   } else if (input < targetNumber) {
     lcd.setCursor(0, 0);
     lcd.print("Terlalu Kecil!");
-    buzz(1000);
+    buzz(200);
   } else {
     lcd.setCursor(0, 0);
     lcd.print("Terlalu Besar!");
-    buzz(1000);
+    buzz(200);
   }
   inputNumber = "";
   delay(2000);
