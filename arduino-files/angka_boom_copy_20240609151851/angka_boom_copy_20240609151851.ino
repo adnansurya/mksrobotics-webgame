@@ -13,8 +13,8 @@ FirebaseConfig config;
 FirebaseAuth auth;
 
 // WiFi credentials
-#define WIFI_SSID "MIKRO"
-#define WIFI_PASSWORD "IDEAlist"
+#define WIFI_SSID "POCOX3GT"
+#define WIFI_PASSWORD "oooooooo"
 
 
 // Inisialisasi LCD
@@ -41,8 +41,8 @@ const int buzzerPin = 18;
 // Variabel permainan
 int targetNumber;  // Angka rahasia
 String pin = "";
-String pinUpdate = "";
 String inputNumber = "";
+bool liveMode;
 
 void setup() {
   lcd.begin();
@@ -66,22 +66,30 @@ void setup() {
   Firebase.reconnectWiFi(true);
 
   pin = generateRandomPin();
+  lcd.print("pin: ");
+  lcd.setCursor(6, 0);
   lcd.print(pin);
   sendData(pin);
-  delay(3000);
+
+  while (getLiveModeFromFirebase() == false) {
+    delay(1000);
+  }
+
   lcd.clear();
   lcd.setCursor(3, 0);
   lcd.print("ANGKA BOOM");
   delay(1000);
   lcd.clear();
-  lcd.setCursor(0,0);
+  lcd.setCursor(0, 0);
   lcd.print("Masukkan");
-  lcd.setCursor(0,1);
+  lcd.setCursor(0, 1);
   lcd.print("Angka: ");
   targetNumber = random(5);
 }
 
 void loop() {
+
+
   char key = keypad.getKey();
 
   if (key) {
@@ -95,6 +103,8 @@ void loop() {
       lcd.print("Masukkan");
       lcd.setCursor(0, 1);
       lcd.print("Angka:");
+    } else if (key == 'D') {
+      ESP.restart();
     } else {
       inputNumber += key;
       lcd.setCursor(0, 1);
@@ -112,7 +122,14 @@ void checkNumber() {
     lcd.setCursor(0, 0);
     lcd.print("Benar!");
     buzz(500);
+    if (Firebase.setBool(fbdo, "/event/games/angka-boom/status/liveMode", false)) {
+      Serial.print("Data sent to Firebase: ");
+      Serial.println("false");
+    } else {
+      Serial.println("Failed to send data to Firebase");
+    }
     ESP.restart();
+
   } else if (input < targetNumber) {
     lcd.setCursor(0, 0);
     lcd.print("Terlalu Kecil!");
@@ -151,4 +168,27 @@ String generateRandomPin() {
     pin += String(random(0, 10));  // Append a random digit (0-9)
   }
   return pin;
+}
+
+String getPinFromFirebase() {
+  if (Firebase.getString(fbdo, "/event/games/angka-boom/status/pin")) {
+    String pinFromFirebase = fbdo.stringData();
+    Serial.print("PIN retrieved from Firebase: ");
+    Serial.println(pinFromFirebase);
+    return pinFromFirebase;
+  } else {
+    Serial.println("Failed to get PIN from Firebase");
+    return "";
+  }
+}
+bool getLiveModeFromFirebase() {
+  if (Firebase.getBool(fbdo, "/event/games/angka-boom/status/liveMode")) {
+    bool liveMode = fbdo.boolData();
+    Serial.print("Live mode status retrieved from Firebase: ");
+    Serial.println(liveMode ? "true" : "false");
+    return liveMode;
+  } else {
+    Serial.println("Failed to get live mode status from Firebase");
+    return false;
+  }
 }
